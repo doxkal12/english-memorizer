@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#172554"><title>영어 본문 트레이너</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#182033;--muted:#68738a;--blue:#3457d5;--line:#e4e8f1;--soft:#edf1ff;--green:#16845b;--red:#c34444}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif}
+header{background:linear-gradient(135deg,#172554,#3457d5);color:white;padding:25px 17px 34px}.wrap{max-width:900px;margin:auto}h1{font-size:25px;margin:0 0 6px}header p{margin:0;color:#dce4ff;font-size:14px}
+main{max-width:900px;margin:-17px auto 35px;padding:0 13px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;margin-bottom:13px;box-shadow:0 5px 20px #1b2b500c}
+h2{font-size:18px;margin:0 0 13px}h3{font-size:15px;margin:0 0 9px}label{display:block;font-size:13px;font-weight:750;margin-bottom:7px}
+textarea,input{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px;font:inherit;color:var(--ink);background:white}textarea{min-height:160px;line-height:1.65;resize:vertical}
+button{border:0;border-radius:11px;padding:11px 14px;background:var(--soft);color:#2944b2;font-weight:750;font-size:14px;cursor:pointer}button.primary{background:var(--blue);color:white}button.dark{background:#202b45;color:white}button.good{background:#e5f6ef;color:var(--green)}button:disabled{opacity:.35;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.muted,.note{font-size:12px;color:var(--muted);line-height:1.55}.tabs,.levels{display:flex;gap:7px;flex-wrap:wrap}.tabs button.active,.levels button.active,.lesson.active{background:#202b45;color:#fff}
+.lesson{flex:1;background:#edf1ff;color:#2944b2}.level{flex:1;min-width:85px}
+.hidden{display:none!important}.panel{margin-top:14px}.prompt{background:#f7f8fc;border-radius:13px;padding:14px;margin:12px 0;line-height:1.8}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0;min-height:44px}.tile{background:#e9edff;color:#203b9b;padding:10px 13px;border-radius:10px;font-weight:700}
+.answerline{display:flex;flex-wrap:wrap;gap:7px;min-height:48px;padding:8px;border:1px dashed #bbc5dc;border-radius:12px}.answerline .tile{background:#e8f6ef;color:#126b4a}
+.wordhint{display:inline-flex;gap:5px;margin:4px 5px 4px 0;padding:5px 7px;background:#f1f3f8;border-radius:7px;font-family:ui-monospace,monospace;font-weight:700;letter-spacing:1px}
+.result{font-weight:750;margin-top:12px;line-height:1.6}.ok{color:var(--green)}.bad{color:var(--red)}
+.progress{height:8px;background:#edf0f6;border-radius:99px;overflow:hidden;margin:10px 0}.progress span{display:block;height:100%;width:0;background:var(--blue)}
+.diff{white-space:pre-wrap;line-height:1.9;overflow-wrap:anywhere}.wrong{background:#ffe1e1;color:#a52d2d;text-decoration:underline;text-decoration-color:#c44}
+@media(max-width:520px){h1{font-size:22px}.card{padding:14px}.row button{padding:10px 9px}}
+</style></head>
+<body>
+<header><div class="wrap"><h1>📝 영어 본문 트레이너</h1><p>3과 · 4과 / 쉬움 · 중간 · 어려움 · 실전 시험</p></div></header>
+<main>
+<section class="card">
+<h2>① 본문 입력</h2>
+<p class="note">각 줄에 영어 문장과 한국어 뜻을 입력해 주세요. 영어와 뜻은 <b>|</b> 기호로 구분해요.<br>예시: <b>I'm happy today. | 나는 오늘 행복하다.</b></p>
+<div class="row"><button class="lesson active" data-lesson="3과">3과</button><button class="lesson" data-lesson="4과">4과</button></div>
+<label for="editor" style="margin-top:13px">선택한 과의 본문</label>
+<textarea id="editor" placeholder="I'm happy today. | 나는 오늘 행복하다.&#10;I go to school every day. | 나는 매일 학교에 간다."></textarea>
+<div class="row" style="margin-top:9px"><button class="primary" id="save">본문 저장</button><button id="sample">예시 넣기</button><button id="clear">이 과 비우기</button></div>
+<div class="row" style="margin-top:8px"><button class="dark" id="share">🔗 3·4과 본문 공유 링크 만들기</button></div>
+<div id="shareStatus" class="note" style="overflow-wrap:anywhere"></div>
+<div class="note" id="saveStatus">3과와 4과 본문은 이 기기에 저장됩니다.</div>
+</section>
+<section class="card">
+<h2>② 학습 모드</h2>
+<div class="row" id="lessonPicker"><button class="lesson active" data-lesson="3과">3과 연습</button><button class="lesson" data-lesson="4과">4과 연습</button></div>
+<div class="levels" style="margin-top:12px">
+<button class="level active" data-level="easy">쉬움</button><button class="level" data-level="medium">중간</button><button class="level" data-level="hard">어려움</button><button class="level" data-level="exam">실전 시험</button>
+</div>
+<div class="note" id="modeDesc" style="margin-top:9px">쉬움: 문장 속 단어를 섞어 놓으면 올바른 순서로 맞춰요.</div>
+<div class="panel" id="practice">
+<div class="row" style="align-items:center"><div><b id="counter">문장 0개</b><div class="progress"><span id="progressBar"></span></div></div><button id="next">다른 문장 뽑기 ↻</button></div>
+<div class="prompt" id="meaning">본문을 먼저 입력하고 저장해 주세요.</div>
+<div id="easyArea">
+<label>단어를 눌러 문장을 완성하세요</label><div class="answerline" id="chosen"></div><div class="tiles" id="bank"></div>
+<div class="row"><button id="undo">하나 되돌리기</button><button id="resetWords">다시 섞기</button><button class="primary" id="checkEasy">정답 확인</button></div>
+</div>
+<div id="mediumArea" class="hidden">
+<label>각 단어의 첫 글자 힌트가 제공돼요</label><div id="hints"></div>
+<div class="row" style="margin-top:10px"><button id="hint">힌트 더 보기</button><button class="primary" id="checkMedium">정답 확인</button></div>
+<textarea id="mediumAnswer" placeholder="힌트를 보고 영어 문장 전체를 입력하세요." style="min-height:90px;margin-top:10px"></textarea>
+</div>
+<div id="hardArea" class="hidden">
+<label>한국어 뜻만 보고 영어 문장을 작성하세요</label><textarea id="hardAnswer" placeholder="영어 문장을 직접 작성하세요." style="min-height:100px"></textarea>
+<button class="primary" id="checkHard" style="margin-top:8px;width:100%">정답 확인</button>
+</div>
+<div class="result" id="practiceResult"></div>
+<div class="prompt hidden" id="correctReveal"></div>
+</div>
+<div class="panel hidden" id="exam">
+<p class="note">선택한 과의 전체 본문을 아무것도 보지 않고 작성하세요. 제출하면 틀린 단어와 빠뜨린 부분을 표시해 줍니다.</p>
+<div class="row"><button class="dark" id="startExam">시험 시작 / 새로 출제</button><span class="note" id="examCount"></span></div>
+<textarea id="examAnswer" placeholder="여기에 본문 전체를 기억나는 대로 작성하세요." style="min-height:220px;margin-top:12px"></textarea>
+<button class="primary" id="submitExam" style="width:100%">시험 제출 및 채점</button>
+<div id="examResult" class="result"></div>
+<div id="examDiff" class="diff" style="margin-top:10px"></div>
+</div>
+</section>
+<p class="note" style="text-align:center;padding:5px 10px 25px">학습 기록은 이 기기에 저장됩니다. 본문을 친구와 함께 쓰려면 공유용 웹 주소로 배포한 뒤 같은 본문 데이터를 공유해야 합니다.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let data={'3과':[],'4과':[]},lesson='3과',level='easy',current=null,used={'3과':new Set(),'4과':new Set()},chosen=[],hintLevel=1,examSentences=[];
+function makeShareLink(){
+ const url=new URL(location.href);
+ url.hash='data='+encodeURIComponent(JSON.stringify(data));
+ const link=url.toString();
+ const box=$('shareStatus');box.textContent='공유 링크: '+link;
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(link).then(()=>box.textContent='공유 링크를 복사했어요! 친구에게 보내세요: '+link).catch(()=>{});
+}
+function importSharedData(){
+ try{const params=new URLSearchParams(location.hash.slice(1));const raw=params.get('data');if(raw){const incoming=JSON.parse(raw);if(incoming&&typeof incoming==='object'){for(const k of ['3과','4과'])if(Array.isArray(incoming[k]))data[k]=incoming[k];localStorage.setItem('engTrainerData',JSON.stringify(data));}}}catch(e){}
+}
+function parseEditor(){
+ return $('editor').value.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(line=>{
+  const k=line.indexOf('|');return {en:(k<0?line:line.slice(0,k)).trim(),ko:k<0?'(뜻 미입력)':line.slice(k+1).trim()};
+ }).filter(x=>x.en);
+}
+function loadLesson(){ $('editor').value=(data[lesson]||[]).map(x=>x.en+' | '+(x.ko==='(뜻 미입력)'?'':x.ko)).join('\n'); }
+function saveData(){data[lesson]=parseEditor();localStorage.setItem('engTrainerData',JSON.stringify(data));$('saveStatus').textContent=lesson+' 저장 완료 · '+data[lesson].length+'문장';if(current===null||!data[lesson].length)drawEmpty();else pick();}
+function drawEmpty(){current=null;$('meaning').textContent='이 과의 본문을 입력하고 [본문 저장]을 눌러 주세요.';$('counter').textContent='문장 0개';$('bank').innerHTML='';$('chosen').innerHTML='';$('hints').innerHTML='';$('practiceResult').textContent='';}
+function pick(){
+ const list=data[lesson]||[];if(!list.length){drawEmpty();return}
+ if(used[lesson].size>=list.length)used[lesson].clear();
+ let candidates=list.map((x,i)=>i).filter(i=>!used[lesson].has(i));let idx=candidates[Math.floor(Math.random()*candidates.length)];used[lesson].add(idx);current=list[idx];
+ $('counter').textContent=`${used[lesson].size} / ${list.length}문장 학습`; $('progressBar').style.width=(used[lesson].size/list.length*100)+'%';
+ $('meaning').textContent=current.ko; $('practiceResult').textContent='';$('correctReveal').classList.add('hidden');
+ $('mediumAnswer').value='';$('hardAnswer').value='';hintLevel=1;chosen=[];renderEasy();renderHints();
+}
+function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function renderEasy(){
+ $('chosen').innerHTML='';$('bank').innerHTML='';
+ if(!current)return;
+ const tokens=current.en.match(/\S+/g)||[];shuffle(tokens).forEach((word,i)=>{let b=document.createElement('button');b.className='tile';b.textContent=word;b.onclick=()=>{chosen.push(word);b.disabled=true;let c=document.createElement('button');c.className='tile';c.textContent=word;c.onclick=()=>{chosen.splice(chosen.indexOf(word),1);renderEasy()};$('chosen').append(c)};$('bank').append(b)});
+}
+function renderHints(){
+ $('hints').innerHTML='';if(!current)return;
+ const words=current.en.match(/[A-Za-z0-9']+|[^A-Za-z0-9']+/g)||[];
+ words.filter(w=>/[A-Za-z0-9]/.test(w)).forEach(w=>{let n=Math.min(hintLevel,w.length);let span=document.createElement('span');span.className='wordhint';span.textContent=w.slice(0,n)+ '_'.repeat(Math.max(0,w.length-n));$('hints').append(span)});
+}
+function norm(s){return s.toLowerCase().replace(/[’]/g,"'").replace(/[^a-z0-9']+/g,' ').trim().replace(/\s+/g,' ')}
+function showResult(ok,msg){$('practiceResult').className='result '+(ok?'ok':'bad');$('practiceResult').textContent=msg;$('correctReveal').textContent='정답: '+current.en;$('correctReveal').classList.remove('hidden')}
+function checkAnswer(v){let ok=norm(v)===norm(current.en);showResult(ok,ok?'정답입니다! 잘했어요 🎉':'아직 달라요. 정답을 확인하고 다시 도전해 보세요.')}
+function setLevel(l){level=l;document.querySelectorAll('.level').forEach(b=>b.classList.toggle('active',b.dataset.level===l));$('practice').classList.toggle('hidden',l==='exam');$('exam').classList.toggle('hidden',l!=='exam');$('easyArea').classList.toggle('hidden',l!=='easy');$('mediumArea').classList.toggle('hidden',l!=='medium');$('hardArea').classList.toggle('hidden',l!=='hard');$('modeDesc').textContent={easy:'쉬움: 문장 속 단어를 무작위로 섞어 놓으면 올바른 순서로 맞춰요.',medium:'중간: 각 단어의 첫 글자만 공개돼요. 힌트를 누를 때마다 모든 단어에 다음 글자가 하나씩 추가돼요.',hard:'어려움: 한국어 뜻만 보고 영어 문장 전체를 직접 작성해요.',exam:'실전 시험: 본문 전체를 가린 상태에서 직접 작성하고 틀린 부분을 확인해요.'}[l];if(l==='exam')startExam();else pick()}
+function setLesson(l){lesson=l;document.querySelectorAll('[data-lesson]').forEach(b=>b.classList.toggle('active',b.dataset.lesson===l));loadLesson();used[lesson].clear();pick();$('examAnswer').value='';$('examResult').textContent='';$('examDiff').textContent=''}
+function startExam(){examSentences=[...(data[lesson]||[])];$('examAnswer').value='';$('examResult').textContent='';$('examDiff').textContent='';$('examCount').textContent=examSentences.length?`${examSentences.length}문장 출제`:'본문을 먼저 저장하세요.'}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function submitExam(){
+ if(!examSentences.length){$('examResult').textContent='먼저 본문을 입력하고 저장해 주세요.';return}
+ let target=examSentences.map(x=>x.en).join(' '),answer=$('examAnswer').value;
+ let t=target.match(/[A-Za-z0-9']+|[^A-Za-z0-9']+/g)||[],a=answer.match(/[A-Za-z0-9']+|[^A-Za-z0-9']+/g)||[];
+ let targetWords=t.filter(x=>/[A-Za-z0-9]/.test(x)),answerWords=a.filter(x=>/[A-Za-z0-9]/.test(x));
+ let matches=0,html='',max=Math.max(targetWords.length,answerWords.length);
+ for(let i=0;i<max;i++){let expected=targetWords[i],got=answerWords[i];if(expected&&got&&norm(expected)===norm(got)){matches++;html+=escapeHtml(expected)+' '}else if(expected){html+='<span class="wrong" title="정답: '+escapeHtml(expected)+'">'+escapeHtml(got||'＿')+'</span> <small>(정답 '+escapeHtml(expected)+')</small> '}else if(got){html+='<span class="wrong">'+escapeHtml(got)+'</span> <small>(불필요한 단어)</small> '}}
+ let pct=Math.round(matches/Math.max(targetWords.length,1)*100);$('examResult').textContent=`채점 결과: ${pct}% · ${matches}/${targetWords.length}개 단어 위치 일치`; $('examDiff').innerHTML='<b>비교 결과 (빨간색은 틀리거나 빠진 부분)</b><br>'+html;
+}
+$('save').onclick=saveData;$('share').onclick=makeShareLink;$('sample').onclick=()=>{$('editor').value="I'm happy today. | 나는 오늘 행복하다.\\nI go to school every day. | 나는 매일 학교에 간다.\\nReading books is a good habit. | 책을 읽는 것은 좋은 습관이다.";saveData()};
+$('clear').onclick=()=>{if(confirm(lesson+' 본문을 삭제할까요?')){$('editor').value='';data[lesson]=[];localStorage.setItem('engTrainerData',JSON.stringify(data));pick();$('saveStatus').textContent=lesson+' 본문을 삭제했어요.'}};
+document.querySelectorAll('.lesson').forEach(b=>b.addEventListener('click',()=>setLesson(b.dataset.lesson)));
+document.querySelectorAll('.level').forEach(b=>b.onclick=()=>setLevel(b.dataset.level));
+$('next').onclick=pick;$('undo').onclick=()=>{if(chosen.length){chosen.pop();renderEasy();chosen.forEach(w=>{let btn=[...$('bank').children].find(x=>x.textContent===w&&!x.disabled);if(btn){btn.disabled=true;let c=document.createElement('button');c.className='tile';c.textContent=w;c.onclick=()=>{chosen.splice(chosen.indexOf(w),1);renderEasy()};$('chosen').append(c)}})}};
+$('resetWords').onclick=renderEasy;$('checkEasy').onclick=()=>checkAnswer(chosen.join(' '));$('hint').onclick=()=>{if(!current)return;hintLevel=Math.min(hintLevel+1,Math.max(...current.en.split(/\s+/).map(x=>x.length)));renderHints()};
+$('checkMedium').onclick=()=>checkAnswer($('mediumAnswer').value);$('checkHard').onclick=()=>checkAnswer($('hardAnswer').value);$('startExam').onclick=startExam;$('submitExam').onclick=submitExam;
+importSharedData();\ntry{let saved=JSON.parse(localStorage.getItem('engTrainerData')||'null');if(saved&&typeof saved==='object')data={...data,...saved}}catch(e){}
+loadLesson();$('saveStatus').textContent='저장된 본문 '+Object.values(data).reduce((n,a)=>n+(a||[]).length,0)+'문장';pick();
+</script></body></html>
